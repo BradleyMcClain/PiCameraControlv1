@@ -71,15 +71,6 @@ class CameraApp:
         frame = np.flipud(frame)
         frame = pygame.surfarray.make_surface(frame)
         self.screen.blit(frame, (0, 0))
-        self.highlight_saturated_pixels()
-        if not hasattr(self, 'frame_buffer'):
-            self.frame_buffer = np.empty((480, 800, 3), dtype=np.uint8)  # Create once
-        
-        self.camera.capture(self.frame_buffer, format='rgb', use_video_port=True)
-        frame = np.rot90(self.frame_buffer)
-        frame = np.flipud(frame)
-        frame = pygame.surfarray.make_surface(frame)
-        self.screen.blit(frame, (0, 0))
     
     def draw_buttons(self):
         font = pygame.font.Font(None, 30)
@@ -129,20 +120,6 @@ class CameraApp:
         self.camera.awb_gains = (self.adjustments["adjust_red"][0], self.adjustments["adjust_blue"][0])
         self.camera.shutter_speed = int(self.adjustments["exposure_time"][0] * 1000)
     
-    def highlight_saturated_pixels(self):
-        mask = (self.frame_buffer[:, :, 0] >= 250) & (self.frame_buffer[:, :, 1] >= 250) & (self.frame_buffer[:, :, 2] >= 250)
-        self.frame_buffer[mask] = [150, 150, 0]  # Apply dark yellow color efficiently
-        for y in range(self.frame_buffer.shape[0]):
-            for x in range(self.frame_buffer.shape[1]):
-                r, g, b = self.frame_buffer[y, x]
-                if r >= 250 and g >= 250 and b >= 250:
-                    self.frame_buffer[y, x] = [150, 150, 0]  # Dark yellow
-        saturated_pixels = np.where((self.frame_buffer[:, :, 0] >= 250) &
-                                    (self.frame_buffer[:, :, 1] >= 250) &
-                                    (self.frame_buffer[:, :, 2] >= 250))
-        for y, x in zip(*saturated_pixels):
-            pygame.draw.rect(self.screen, (255, 255, 0), (x, y, 2, 2), 1)
-
     def take_snapshot(self):
         timestamp = time.strftime("%Y%m%d-%H%M%S")
         filename = "snapshot_" + timestamp + ".jpg"
