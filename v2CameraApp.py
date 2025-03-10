@@ -16,27 +16,30 @@ class CameraApp:
         self.camera.framerate = 30
         
         self.running = True
-        self.brightness = 50
-        self.contrast = 0
-        self.exposure_time = 0
-        self.exposure_mode = "auto"
-        self.iso = 100
-        self.adjust_red = 1.0
-        self.adjust_blue = 1.0
         
-        # Create buttons
-        self.buttons = {
-            "snapshot": pygame.Rect(10, 400, 150, 50)
+        # Adjustable settings with [current_value, min_value, max_value]
+        self.adjustments = {
+            "brightness": [50, 0, 100],
+            "contrast": [0, -100, 100],
+            "exposure_time": [0, 0, 800],
+            "iso": [100, 100, 800],
+            "adjust_red": [1.0, 0.5, 2.0],
+            "adjust_blue": [1.0, 0.5, 2.0]
         }
         
-        # Create sliders
-        self.sliders = {
-            "brightness": [pygame.Rect(400, 400, 150, 10), 0, 100],
-            "contrast": [pygame.Rect(400, 420, 150, 10), -100, 100],
-            "exposure_time": [pygame.Rect(400, 440, 150, 10), 0, 800],
-            "iso": [pygame.Rect(400, 460, 150, 10), 100, 800],
-            "adjust_red": [pygame.Rect(400, 480, 150, 10), 0.5, 2.0],
-            "adjust_blue": [pygame.Rect(400, 500, 150, 10), 0.5, 2.0]
+        # Create buttons for adjustments
+        self.adjustment_buttons = {}
+        y_offset = 100
+        for label in self.adjustments.keys():
+            self.adjustment_buttons[label] = {
+                "minus": pygame.Rect(300, y_offset, 50, 30),
+                "plus": pygame.Rect(500, y_offset, 50, 30),
+                "display": pygame.Rect(360, y_offset, 130, 30)
+            }
+            y_offset += 40
+        
+        self.buttons = {
+            "snapshot": pygame.Rect(10, 400, 150, 50)
         }
         
         self.main_loop()
@@ -49,11 +52,11 @@ class CameraApp:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:  # Left mouse button
                         self.handle_button_click(event.pos)
-                        self.handle_slider_adjust(event.pos)
+                        self.handle_adjustment_buttons(event.pos)
             
             self.update_camera_view()
             self.draw_buttons()
-            self.draw_sliders()
+            self.draw_adjustment_buttons()
             pygame.display.flip()
         
         pygame.quit()
@@ -77,35 +80,44 @@ class CameraApp:
             text = font.render(label.replace('_', ' ').title(), True, (0, 0, 0))
             self.screen.blit(text, (rect.x + 10, rect.y + 15))
     
-    def draw_sliders(self):
-        font = pygame.font.Font(None, 24)  # Font for labels
+    def draw_adjustment_buttons(self):
+        font = pygame.font.Font(None, 24)
         colors = (200, 200, 200)
         
-        for label, (rect, min_val, max_val) in self.sliders.items():
-            pygame.draw.rect(self.screen, colors, rect)
-            slider_x = int(rect.x + (getattr(self, label) - min_val) / (max_val - min_val) * rect.width)
-            pygame.draw.circle(self.screen, (0, 0, 255), (slider_x, rect.y + 5), 5)
+        for label, buttons in self.adjustment_buttons.items():
+            pygame.draw.rect(self.screen, colors, buttons["minus"])
+            pygame.draw.rect(self.screen, colors, buttons["plus"])
+            pygame.draw.rect(self.screen, (100, 100, 100), buttons["display"])
+            
+            minus_text = font.render("-", True, (0, 0, 0))
+            plus_text = font.render("+", True, (0, 0, 0))
+            value_text = font.render(str(self.adjustments[label][0]), True, (255, 255, 255))
             label_text = font.render(label.replace('_', ' ').title(), True, (255, 255, 255))
-            self.screen.blit(label_text, (rect.x - 160, rect.y))
+            
+            self.screen.blit(minus_text, (buttons["minus"].x + 20, buttons["minus"].y + 5))
+            self.screen.blit(plus_text, (buttons["plus"].x + 20, buttons["plus"].y + 5))
+            self.screen.blit(value_text, (buttons["display"].x + 45, buttons["display"].y + 5))
+            self.screen.blit(label_text, (buttons["minus"].x - 160, buttons["minus"].y))
     
     def handle_button_click(self, position):
         if self.buttons["snapshot"].collidepoint(position):
             self.take_snapshot()
     
-    def handle_slider_adjust(self, position):
-        for label, (rect, min_val, max_val) in self.sliders.items():
-            if rect.collidepoint(position):
-                value = min_val + (position[0] - rect.x) / rect.width * (max_val - min_val)
-                setattr(self, label, round(float(max(min(float(value), max_val), min_val)), 2))
-                self.apply_camera_settings()
-                print(label.title() + " Set: " + str(getattr(self, label)))
+    def handle_adjustment_buttons(self, position):
+        for label, buttons in self.adjustment_buttons.items():
+            if buttons["minus"].collidepoint(position):
+                self.adjustments[label][0] = max(self.adjustments[label][0] - 1, self.adjustments[label][1])
+            elif buttons["plus"].collidepoint(position):
+                self.adjustments[label][0] = min(self.adjustments[label][0] + 1, self.adjustments[label][2])
+            self.apply_camera_settings()
+            print(label.title() + " Set: " + str(self.adjustments[label][0]))
     
     def apply_camera_settings(self):
-        self.camera.brightness = self.brightness
-        self.camera.contrast = self.contrast
-        self.camera.iso = self.iso
-        self.camera.awb_gains = (self.adjust_red, self.adjust_blue)
-        self.camera.shutter_speed = int(self.exposure_time * 1000)
+        self.camera.brightness = self.adjustments["brightness"][0]
+        self.camera.contrast = self.adjustments["contrast"][0]
+        self.camera.iso = self.adjustments["iso"][0]
+        self.camera.awb_gains = (self.adjustments["adjust_red"][0], self.adjustments["adjust_blue"][0])
+        self.camera.shutter_speed = int(self.adjustments["exposure_time"][0] * 1000)
     
     def take_snapshot(self):
         timestamp = time.strftime("%Y%m%d-%H%M%S")
