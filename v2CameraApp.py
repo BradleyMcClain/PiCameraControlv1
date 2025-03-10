@@ -23,12 +23,10 @@ class CameraApp:
         self.iso = 100
         self.adjust_red = 1.0
         self.adjust_blue = 1.0
-        self.show_histogram = False
         
         # Create buttons
         self.buttons = {
-            "snapshot": pygame.Rect(10, 400, 150, 50),
-            "toggle_histogram": pygame.Rect(170, 400, 200, 50)
+            "snapshot": pygame.Rect(10, 400, 150, 50)
         }
         
         # Create sliders
@@ -59,23 +57,16 @@ class CameraApp:
             pygame.display.flip()
         
         pygame.quit()
-        del self.frame_buffer  # Free up memory
-        del self.hist_frame
     
     def update_camera_view(self):
         if not hasattr(self, 'frame_buffer'):
             self.frame_buffer = np.empty((480, 800, 3), dtype=np.uint8)  # Create once
+        
         self.camera.capture(self.frame_buffer, format='rgb', use_video_port=True)
         frame = np.rot90(self.frame_buffer)
         frame = np.flipud(frame)
-        self.camera.capture(frame, format='rgb', use_video_port=True)
-        frame = np.rot90(frame)
-        frame = np.flipud(frame)
         frame = pygame.surfarray.make_surface(frame)
         self.screen.blit(frame, (0, 0))
-        
-        if self.show_histogram:
-            self.display_histogram()
     
     def draw_buttons(self):
         font = pygame.font.Font(None, 30)
@@ -94,15 +85,12 @@ class CameraApp:
             pygame.draw.rect(self.screen, colors, rect)
             slider_x = int(rect.x + (getattr(self, label) - min_val) / (max_val - min_val) * rect.width)
             pygame.draw.circle(self.screen, (0, 0, 255), (slider_x, rect.y + 5), 5)
-            label = font.render(label.replace('_', ' ').title(), True, (255, 255, 255))
-            self.screen.blit(label, (rect.x, rect.y - 20))
+            label_text = font.render(label.replace('_', ' ').title(), True, (255, 255, 255))
+            self.screen.blit(label_text, (rect.x, rect.y - 20))
     
     def handle_button_click(self, position):
         if self.buttons["snapshot"].collidepoint(position):
             self.take_snapshot()
-        elif self.buttons["toggle_histogram"].collidepoint(position):
-            self.show_histogram = not self.show_histogram
-            print("Histogram " + ("Enabled" if self.show_histogram else "Disabled"))
     
     def handle_slider_adjust(self, position):
         for label, (rect, min_val, max_val) in self.sliders.items():
@@ -124,20 +112,6 @@ class CameraApp:
         filename = "snapshot_" + timestamp + ".jpg"
         self.camera.capture(filename)
         print("Saved: " + filename)
-    
-    def display_histogram(self):
-        if not hasattr(self, 'hist_frame'):
-            if pygame.time.get_ticks() % 500 == 0:  # Update every 500ms
-              self.camera.capture(self.hist_frame, format='rgb', use_video_port=True)
-              hist = cv2.calcHist([self.hist_frame], [0], None, [256], [0, 256])
-              hist = hist / hist.max() * 100  # Normalize  # Create once
-        frame = np.empty((480, 800, 3), dtype=np.uint8)
-        self.camera.capture(frame, format='rgb', use_video_port=True)
-        hist = cv2.calcHist([frame], [0], None, [256], [0, 256])
-        hist = hist / hist.max() * 100  # Normalize
-        
-        for x in range(256):
-            pygame.draw.line(self.screen, (255, 0, 0), (x + 550, 100), (x + 550, 100 - int(hist[x])), 1)
-        
+
 if __name__ == "__main__":
     CameraApp()
