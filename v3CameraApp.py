@@ -130,6 +130,8 @@ class CameraApp:
         self.camera.shutter_speed = int(self.adjustments["exposure_time"][0] * 1000)
     
     def highlight_saturated_pixels(self):
+        mask = (self.frame_buffer[:, :, 0] >= 250) & (self.frame_buffer[:, :, 1] >= 250) & (self.frame_buffer[:, :, 2] >= 250)
+        self.frame_buffer[mask] = [150, 150, 0]  # Apply dark yellow color efficiently
         for y in range(self.frame_buffer.shape[0]):
             for x in range(self.frame_buffer.shape[1]):
                 r, g, b = self.frame_buffer[y, x]
