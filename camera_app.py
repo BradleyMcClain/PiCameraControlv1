@@ -18,7 +18,7 @@ class CameraApp:
         self.running = True
         self.agc_enabled = True
         self.manual_gain = 1.0
-        self.exposure_time = 0
+        self.shutter_speed = 0
         self.iso = 100
         self.brightness = 50
         self.contrast = 0
@@ -32,7 +32,7 @@ class CameraApp:
         # Create sliders
         self.sliders = {
             "gain": [pygame.Rect(330, 400, 150, 10), 1.0, 16.0],
-            "exposure": [pygame.Rect(330, 420, 150, 10), 0, 800],
+            "shutter_speed": [pygame.Rect(330, 420, 150, 10), 0, 800],
             "iso": [pygame.Rect(330, 440, 150, 10), 100, 800],
             "brightness": [pygame.Rect(330, 460, 150, 10), 0, 100],
             "contrast": [pygame.Rect(330, 480, 150, 10), -100, 100]
@@ -99,7 +99,7 @@ class CameraApp:
     def apply_camera_settings(self):
         if not self.agc_enabled:
             self.camera.iso = self.iso
-            self.camera.shutter_speed = self.exposure_time * 1000
+            self.camera.shutter_speed = self.shutter_speed * 1000
         self.camera.brightness = self.brightness
         self.camera.contrast = self.contrast
     
@@ -111,7 +111,7 @@ class CameraApp:
     
     def toggle_agc(self):
         self.agc_enabled = not self.agc_enabled
-        self.camera.exposure_mode = 'auto' if self.agc_enabled else 'off'
+        # self.camera.exposure_mode is not needed for manual shutter speed control
         print("AGC " + ("Enabled" if self.agc_enabled else "Disabled"))
 
 if __name__ == "__main__":
