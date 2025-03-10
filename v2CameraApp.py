@@ -59,9 +59,15 @@ class CameraApp:
             pygame.display.flip()
         
         pygame.quit()
+        del self.frame_buffer  # Free up memory
+        del self.hist_frame
     
     def update_camera_view(self):
-        frame = np.empty((480, 800, 3), dtype=np.uint8)
+        if not hasattr(self, 'frame_buffer'):
+            self.frame_buffer = np.empty((480, 800, 3), dtype=np.uint8)  # Create once
+        self.camera.capture(self.frame_buffer, format='rgb', use_video_port=True)
+        frame = np.rot90(self.frame_buffer)
+        frame = np.flipud(frame)
         self.camera.capture(frame, format='rgb', use_video_port=True)
         frame = np.rot90(frame)
         frame = np.flipud(frame)
@@ -81,12 +87,15 @@ class CameraApp:
             self.screen.blit(text, (rect.x + 10, rect.y + 15))
     
     def draw_sliders(self):
+        font = pygame.font.Font(None, 24)  # Font for labels
         colors = (200, 200, 200)
         
         for label, (rect, min_val, max_val) in self.sliders.items():
             pygame.draw.rect(self.screen, colors, rect)
             slider_x = int(rect.x + (getattr(self, label) - min_val) / (max_val - min_val) * rect.width)
             pygame.draw.circle(self.screen, (0, 0, 255), (slider_x, rect.y + 5), 5)
+            label = font.render(label.replace('_', ' ').title(), True, (255, 255, 255))
+            self.screen.blit(label, (rect.x, rect.y - 20))
     
     def handle_button_click(self, position):
         if self.buttons["snapshot"].collidepoint(position):
@@ -99,7 +108,7 @@ class CameraApp:
         for label, (rect, min_val, max_val) in self.sliders.items():
             if rect.collidepoint(position):
                 value = min_val + (position[0] - rect.x) / rect.width * (max_val - min_val)
-                setattr(self, label, round(value, 2))
+                setattr(self, label, round(float(value), 2))
                 self.apply_camera_settings()
                 print(label.title() + " Set: " + str(getattr(self, label)))
     
@@ -117,6 +126,11 @@ class CameraApp:
         print("Saved: " + filename)
     
     def display_histogram(self):
+        if not hasattr(self, 'hist_frame'):
+            self.hist_if pygame.time.get_ticks() % 500 == 0:  # Update every 500ms
+            self.camera.capture(self.hist_frame, format='rgb', use_video_port=True)
+            hist = cv2.calcHist([self.hist_frame], [0], None, [256], [0, 256])
+            hist = hist / hist.max() * 100  # Normalize  # Create once
         frame = np.empty((480, 800, 3), dtype=np.uint8)
         self.camera.capture(frame, format='rgb', use_video_port=True)
         hist = cv2.calcHist([frame], [0], None, [256], [0, 256])
