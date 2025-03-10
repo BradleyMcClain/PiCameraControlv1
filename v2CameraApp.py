@@ -127,10 +127,10 @@ class CameraApp:
     
     def display_histogram(self):
         if not hasattr(self, 'hist_frame'):
-            self.hist_if pygame.time.get_ticks() % 500 == 0:  # Update every 500ms
-            self.camera.capture(self.hist_frame, format='rgb', use_video_port=True)
-            hist = cv2.calcHist([self.hist_frame], [0], None, [256], [0, 256])
-            hist = hist / hist.max() * 100  # Normalize  # Create once
+            if pygame.time.get_ticks() % 500 == 0:  # Update every 500ms
+              self.camera.capture(self.hist_frame, format='rgb', use_video_port=True)
+              hist = cv2.calcHist([self.hist_frame], [0], None, [256], [0, 256])
+              hist = hist / hist.max() * 100  # Normalize  # Create once
         frame = np.empty((480, 800, 3), dtype=np.uint8)
         self.camera.capture(frame, format='rgb', use_video_port=True)
         hist = cv2.calcHist([frame], [0], None, [256], [0, 256])
