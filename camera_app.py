@@ -45,7 +45,7 @@ class CameraApp:
         pygame.quit()
     
     def update_camera_view(self):
-        frame = np.empty((480, 640, 3), dtype=np.uint8)
+        frame = np.empty((480, 800, 3), dtype=np.uint8)
         self.camera.capture(frame, format='rgb', use_video_port=True)
         frame = np.rot90(frame)
         frame = np.flipud(frame)
