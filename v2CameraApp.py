@@ -86,7 +86,7 @@ class CameraApp:
             slider_x = int(rect.x + (getattr(self, label) - min_val) / (max_val - min_val) * rect.width)
             pygame.draw.circle(self.screen, (0, 0, 255), (slider_x, rect.y + 5), 5)
             label_text = font.render(label.replace('_', ' ').title(), True, (255, 255, 255))
-            self.screen.blit(label_text, (rect.x, rect.y - 20))
+            self.screen.blit(label_text, (rect.x - 160, rect.y))
     
     def handle_button_click(self, position):
         if self.buttons["snapshot"].collidepoint(position):
@@ -96,7 +96,7 @@ class CameraApp:
         for label, (rect, min_val, max_val) in self.sliders.items():
             if rect.collidepoint(position):
                 value = min_val + (position[0] - rect.x) / rect.width * (max_val - min_val)
-                setattr(self, label, round(float(value), 2))
+                setattr(self, label, max(min(round(float(value), 2), max_val), min_val))
                 self.apply_camera_settings()
                 print(label.title() + " Set: " + str(getattr(self, label)))
     
