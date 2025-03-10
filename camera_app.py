@@ -51,20 +51,20 @@ class CameraApp:
     
     def take_snapshot(self):
         timestamp = time.strftime("%Y%m%d-%H%M%S")
-        filename = f"snapshot_{timestamp}.jpg"
+        filename = "snapshot_" + timestamp + ".jpg"
         self.camera.capture(filename)
-        print(f"Saved: {filename}")
+        print("Saved: " + filename)
     
     def toggle_agc(self):
         self.agc_enabled = not self.agc_enabled
         self.camera.exposure_mode = 'auto' if self.agc_enabled else 'off'
-        print(f"AGC {'Enabled' if self.agc_enabled else 'Disabled'}")
+        print("AGC " + ("Enabled" if self.agc_enabled else "Disabled"))
     
     def set_manual_gain(self, value):
         if not self.agc_enabled:
             self.manual_gain = max(1.0, min(value, 16.0))  # Clamp gain between 1 and 16
             self.camera.iso = int(self.manual_gain * 100)
-            print(f"Manual Gain Set: {self.manual_gain}")
+            print("Manual Gain Set: " + str(self.manual_gain))
 
 if __name__ == "__main__":
     CameraApp()
