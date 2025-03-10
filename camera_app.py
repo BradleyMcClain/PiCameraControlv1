@@ -31,7 +31,8 @@ class CameraApp:
         
         # Create sliders
         self.sliders = {
-            "gain": [pygame.Rect(330, 400, 150, 10), 1.0, 16.0],
+            "manual_gain": [pygame.Rect(330, 400, 150, 10), 1.0, 16.0],
+            "manual_gain": [pygame.Rect(330, 400, 150, 10), 1.0, 16.0],
             "shutter_speed": [pygame.Rect(330, 420, 150, 10), 0, 800],
             "iso": [pygame.Rect(330, 440, 150, 10), 100, 800],
             "brightness": [pygame.Rect(330, 460, 150, 10), 0, 100],
@@ -95,11 +96,15 @@ class CameraApp:
                 setattr(self, label, round(value))
                 self.apply_camera_settings()
                 print(label.title() + " Set: " + str(getattr(self, label)))
+                print(label.title() + " Set: " + str(getattr(self, label)))
     
     def apply_camera_settings(self):
         if not self.agc_enabled:
             self.camera.iso = self.iso
-            self.camera.shutter_speed = self.shutter_speed * 1000
+            self.camera.shutter_speed = int(self.shutter_speed * 1000)
+        if not self.agc_enabled:
+            self.camera.iso = self.iso
+            self.camera.analog_gain = self.manual_gain  # Apply manual gain
         self.camera.brightness = self.brightness
         self.camera.contrast = self.contrast
     
