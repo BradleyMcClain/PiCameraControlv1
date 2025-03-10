@@ -29,12 +29,13 @@ class CameraApp:
         
         # Create buttons for adjustments
         self.adjustment_buttons = {}
-        y_offset = 100
+        x_offset = 620  # Move buttons to the right side of the screen
+        y_offset = 50  # Adjust vertical positioning slightly higher
         for label in self.adjustments.keys():
             self.adjustment_buttons[label] = {
-                "minus": pygame.Rect(300, y_offset, 50, 30),
-                "plus": pygame.Rect(500, y_offset, 50, 30),
-                "display": pygame.Rect(360, y_offset, 130, 30)
+                "minus": pygame.Rect(x_offset, y_offset, 40, 25),
+                "plus": pygame.Rect(x_offset + 120, y_offset, 40, 25),
+                "display": pygame.Rect(x_offset + 50, y_offset, 60, 25)
             }
             y_offset += 40
         
@@ -97,7 +98,7 @@ class CameraApp:
             self.screen.blit(minus_text, (buttons["minus"].x + 20, buttons["minus"].y + 5))
             self.screen.blit(plus_text, (buttons["plus"].x + 20, buttons["plus"].y + 5))
             self.screen.blit(value_text, (buttons["display"].x + 45, buttons["display"].y + 5))
-            self.screen.blit(label_text, (buttons["minus"].x - 160, buttons["minus"].y))
+            self.screen.blit(label_text, (buttons["minus"].x - 120, buttons["minus"].y + 5))
     
     def handle_button_click(self, position):
         if self.buttons["snapshot"].collidepoint(position):
